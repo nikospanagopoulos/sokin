@@ -53,6 +53,7 @@ sokin/
 ├── templates/        # HTML
 ├── static/           # CSS and JS
 └── docs/             # decisions and diagrams
+    └── adr/          # architecture decision records
 ```
 
 Three layers, one job each: `web` shows pages, the logic packages hold the rules, `store` is the only code that talks to the database. The percentage calculation knows nothing about HTTP or SQL, so it can be tested alone.
@@ -80,3 +81,8 @@ Real notes, `.env` files, tokens and database dumps are listed in `.gitignore` a
 "Sokin" is "Nikos" written backwards, my own name. The app works like a mirror of my real progress: it shows me what I did, what I learned and where I made mistakes.
 
 It is a personal project by a student at Zone01 Athens. It tracks my progress, helps me find my first developer job, and teaches me the daily tools of Cloud/DevOps, AI and cybersecurity engineers.
+
+## License
+
+Sokin is licensed under the GNU Affero General Public License v3.0.
+See the [LICENSE](LICENSE) file for details.
