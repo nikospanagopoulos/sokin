@@ -1,0 +1,23 @@
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Go build output (leading / = repo root only, so cmd/sokin/ stays tracked)
+/sokin
+/sokin.exe
+
+# Test output
+*.out
+coverage.*
+
+# Personal data: database backups and dumps
+/backups/
+
+# Obsidian settings, in case a vault copy ever lands here
+.obsidian/
+
+# Editor and OS files
+.vscode/
+.DS_Store
+Thumbs.db
