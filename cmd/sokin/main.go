@@ -2,42 +2,36 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/url"
-	"os"
+	"net/http"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/nikospanagopoulos/sokin/internal/store"
+	"github.com/nikospanagopoulos/sokin/internal/web"
 )
 
 func main() {
-	user := os.Getenv("POSTGRES_USER")
-	pass := os.Getenv("POSTGRES_PASSWORD")
-	name := os.Getenv("POSTGRES_DB")
-	if user == "" || pass == "" || name == "" {
-		log.Fatal("POSTGRES_* variables are not set (run: set -a; source .env; set +a)")
-	}
-
-	u := url.URL{
-		Scheme: "postgres",
-		User:   url.UserPassword(user, pass),
-		Host:   "127.0.0.1:5432",
-		Path:   name,
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	conn, err := pgx.Connect(ctx, u.String())
+	st, err := store.Open(ctx)
+	cancel()
 	if err != nil {
-		log.Fatalf("cannot connect: %v", err)
+		log.Fatalf("database: %v", err)
 	}
-	defer conn.Close(context.Background())
+	defer st.Close()
 
-	var n int
-	if err := conn.QueryRow(ctx, "SELECT count(*) FROM entries").Scan(&n); err != nil {
-		log.Fatalf("query failed: %v", err)
+	srv, err := web.New(st)
+	if err != nil {
+		log.Fatalf("web: %v", err)
 	}
-	fmt.Println("connected, entries:", n)
+
+	httpServer := &http.Server{
+		Addr:              "127.0.0.1:8080",
+		Handler:           srv.Routes(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+	}
+
+	log.Println("Sokin listening on http://localhost:8080")
+	log.Fatal(httpServer.ListenAndServe())
 }

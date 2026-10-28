@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sokin</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }
+    label { display: block; margin-top: 1rem; font-weight: 600; }
+    textarea, input { width: 100%; box-sizing: border-box; font: inherit; }
+    button { margin-top: 1rem; padding: 0.5rem 1rem; font: inherit; }
+    .entry { border-top: 1px solid #ccc; margin-top: 1.5rem; padding-top: 0.5rem; }
+    .text { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Sokin</h1>
+
+  <form method="post" action="/entries">
+    <label for="entry_date">Ημερομηνία</label>
+    <input type="date" id="entry_date" name="entry_date" value="{{.Today}}" required>
+
+    <label for="did_today">Τι έκανα σήμερα</label>
+    <textarea id="did_today" name="did_today" rows="4"></textarea>
+
+    <label for="learned">Τι έμαθα</label>
+    <textarea id="learned" name="learned" rows="3"></textarea>
+
+    <label for="mistakes">Τι έκανα λάθος</label>
+    <textarea id="mistakes" name="mistakes" rows="3"></textarea>
+
+    <button type="submit">Αποθήκευση</button>
+  </form>
+
+  {{range .Entries}}
+  <div class="entry">
+    <h2>{{.Date.Format "2006-01-02"}}</h2>
+    <p><strong>Έκανα:</strong></p><p class="text">{{.DidToday}}</p>
+    <p><strong>Έμαθα:</strong></p><p class="text">{{.Learned}}</p>
+    <p><strong>Λάθη:</strong></p><p class="text">{{.Mistakes}}</p>
+  </div>
+  {{else}}
+  <p>Δεν υπάρχουν entries ακόμα.</p>
+  {{end}}
+</body>
+</html>
