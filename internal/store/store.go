@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -88,4 +89,30 @@ func (s *Store) ListEntries(ctx context.Context) ([]Entry, error) {
 		entries = append(entries, e)
 	}
 	return entries, rows.Err()
+}
+
+// GetEntry returns the entry for a day, or nil if that day has none.
+func (s *Store) GetEntry(ctx context.Context, date time.Time) (*Entry, error) {
+	var e Entry
+	err := s.pool.QueryRow(ctx, `
+		SELECT id, entry_date, did_today, learned, mistakes
+		FROM entries
+		WHERE entry_date = $1`, date).
+		Scan(&e.ID, &e.Date, &e.DidToday, &e.Learned, &e.Mistakes)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
+}
+
+// CountEntries counts the entries between two days, both included.
+func (s *Store) CountEntries(ctx context.Context, from, to time.Time) (int, error) {
+	var n int
+	err := s.pool.QueryRow(ctx,
+		`SELECT count(*) FROM entries WHERE entry_date BETWEEN $1 AND $2`,
+		from, to).Scan(&n)
+	return n, err
 }

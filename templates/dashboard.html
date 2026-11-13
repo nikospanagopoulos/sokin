@@ -1,0 +1,51 @@
+{{define "title"}}Dashboard · Sokin{{end}}
+
+{{define "content"}}
+<div class="dash">
+  <div class="dash-main">
+    <h1>Dashboard</h1>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="label">Today</span>
+        <strong>{{if .TodayEntry}}Written{{else}}Not yet{{end}}</strong>
+      </div>
+      <div class="stat">
+        <span class="label">This week</span>
+        <strong>{{.DaysWeek}} / {{.WeekElapsed}} days</strong>
+        <div class="bar"><span style="width: {{.WeekPct}}%"></span></div>
+      </div>
+      <div class="stat">
+        <span class="label">This month</span>
+        <strong>{{.DaysMonth}} / {{.MonthElapsed}} days</strong>
+        <div class="bar"><span style="width: {{.MonthPct}}%"></span></div>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2>Today's entry</h2>
+      {{with .TodayEntry}}
+        {{if .DidToday}}<h3>Did</h3><p class="text">{{.DidToday}}</p>{{end}}
+        {{if .Learned}}<h3>Learned</h3><p class="text">{{.Learned}}</p>{{end}}
+        {{if .Mistakes}}<h3>Mistakes</h3><p class="text">{{.Mistakes}}</p>{{end}}
+        <a class="button ghost" href="/write">Edit</a>
+      {{else}}
+        <p class="empty">Nothing written yet today.</p>
+        <a class="button" href="/write">Write today's entry</a>
+      {{end}}
+    </section>
+  </div>
+
+  <aside class="timeline">
+    <h2>Timeline</h2>
+    {{range .Entries}}
+    <a class="item" href="/write?date={{.Date.Format "2006-01-02"}}">
+      <time datetime="{{.Date.Format "2006-01-02"}}">{{.Date.Format "Mon, 02 Jan 2006"}}</time>
+      <p>{{.DidToday}}</p>
+    </a>
+    {{else}}
+    <p class="empty">No entries yet.</p>
+    {{end}}
+  </aside>
+</div>
+{{end}}

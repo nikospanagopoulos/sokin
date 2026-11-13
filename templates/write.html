@@ -1,0 +1,41 @@
+{{define "title"}}Write · Sokin{{end}}
+
+{{define "content"}}
+<div class="page-head">
+  <h1>{{if .Entry}}Edit entry{{else}}New entry{{end}}</h1>
+  <form method="get" action="/write" class="datepick">
+    <label for="date">Day</label>
+    <input type="date" id="date" name="date" value="{{.Date}}" required>
+    <button type="submit" class="ghost">Open</button>
+  </form>
+</div>
+
+<form method="post" action="/entries" class="bento">
+  <input type="hidden" name="entry_date" value="{{.Date}}">
+
+  <section class="cell did">
+    <label for="did_today">What I did</label>
+    <textarea id="did_today" name="did_today">{{with .Entry}}{{.DidToday}}{{end}}</textarea>
+  </section>
+
+  <section class="cell learned">
+    <label for="learned">What I learned</label>
+    <textarea id="learned" name="learned">{{with .Entry}}{{.Learned}}{{end}}</textarea>
+  </section>
+
+  <section class="cell mistakes">
+    <label for="mistakes">What I got wrong</label>
+    <textarea id="mistakes" name="mistakes">{{with .Entry}}{{.Mistakes}}{{end}}</textarea>
+  </section>
+
+  <section class="cell tomorrow">
+    <h2>Tomorrow</h2>
+    <p class="empty">Tasks will live here in phase 2.</p>
+  </section>
+
+  <section class="cell save">
+    <p class="empty">{{.Date}}</p>
+    <button type="submit">Save entry</button>
+  </section>
+</form>
+{{end}}
