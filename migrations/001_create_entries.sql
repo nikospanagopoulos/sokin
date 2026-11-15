@@ -1,3 +1,5 @@
+-- +goose Up
+
 CREATE TABLE entries (
     id         BIGSERIAL PRIMARY KEY,
     entry_date DATE        NOT NULL UNIQUE,
@@ -7,3 +9,5 @@ CREATE TABLE entries (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- +goose Down
+DROP TABLE entries;

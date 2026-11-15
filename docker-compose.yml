@@ -10,7 +10,7 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - sokin_pgdata:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d:ro
+      
 
 volumes:
   sokin_pgdata:
