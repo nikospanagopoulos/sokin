@@ -2,23 +2,25 @@ package tasks
 
 import "testing"
 
-func TestDayPercent(t *testing.T) {
+func TestPercent(t *testing.T) {
 	tests := []struct {
 		name string
-		in   []int
+		in   []Item
 		want int
 		ok   bool
 	}{
 		{"no tasks", nil, 0, false},
-		{"one task", []int{70}, 70, true},
-		{"average", []int{100, 50, 0}, 50, true},
-		{"rounds", []int{100, 0, 0}, 33, true},
+		{"one task", []Item{{70, 5}}, 70, true},
+		{"equal weights", []Item{{100, 5}, {50, 5}, {0, 5}}, 50, true},
+		{"hard task done", []Item{{100, 9}, {0, 1}}, 90, true},
+		{"hard task not done", []Item{{100, 1}, {0, 9}}, 10, true},
+		{"rounds", []Item{{100, 1}, {0, 2}}, 33, true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, ok := DayPercent(tc.in)
+			got, ok := Percent(tc.in)
 			if got != tc.want || ok != tc.ok {
-				t.Errorf("DayPercent(%v) = %d, %v; want %d, %v", tc.in, got, ok, tc.want, tc.ok)
+				t.Errorf("Percent(%v) = %d, %v; want %d, %v", tc.in, got, ok, tc.want, tc.ok)
 			}
 		})
 	}
