@@ -1,0 +1,26 @@
+{{define "title"}}Tasks · Sokin{{end}}
+
+{{define "content"}}
+<div class="page-head">
+  <h1>Tasks</h1>
+  <form method="get" action="/tasks" class="datepick">
+    <label for="date">Day</label>
+    <input type="date" id="date" name="date" value="{{.Date}}" required>
+    <button type="submit" class="ghost">Open</button>
+  </form>
+</div>
+
+<section class="card">
+  <h2>{{.Date}}{{if .HasPercent}} · {{.Percent}}%{{end}}</h2>
+  {{if .HasPercent}}<div class="bar"><span style="width: {{.Percent}}%"></span></div>{{end}}
+  {{range .Tasks}}
+  <div class="task">
+    <strong>{{.Title}}</strong>
+    <span class="label">{{.Progress}}% · difficulty {{.Difficulty}}</span>
+    {{if .Note}}<p class="text">{{.Note}}</p>{{end}}
+  </div>
+  {{else}}
+  <p class="empty">No tasks for this day.</p>
+  {{end}}
+</section>
+{{end}}

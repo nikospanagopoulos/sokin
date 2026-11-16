@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/nikospanagopoulos/sokin/internal/store"
+	"github.com/nikospanagopoulos/sokin/internal/tasks"
 )
 
 const dateLayout = "2006-01-02"
@@ -40,11 +41,19 @@ type writeData struct {
 	Entry *store.Entry
 }
 
+type tasksData struct {
+	Page
+	Date       string
+	Tasks      []store.Task
+	Percent    int
+	HasPercent bool
+}
+
 // New loads the templates. Each page is parsed together with the layout.
 // Run the program from the repository root.
 func New(s *store.Store) (*Server, error) {
 	pages := make(map[string]*template.Template)
-	for _, name := range []string{"dashboard.html", "write.html"} {
+	for _, name := range []string{"dashboard.html", "write.html", "tasks.html"} {
 		t, err := template.ParseFiles("templates/layout.html", "templates/"+name)
 		if err != nil {
 			return nil, err
@@ -58,6 +67,7 @@ func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", s.dashboard)
 	mux.HandleFunc("GET /write", s.writeForm)
+	mux.HandleFunc("GET /tasks", s.tasksPage)
 	mux.HandleFunc("POST /entries", s.saveEntry)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	return mux
@@ -178,4 +188,37 @@ func (s *Server) saveEntry(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (s *Server) tasksPage(w http.ResponseWriter, r *http.Request) {
+	date := today()
+	if q := r.URL.Query().Get("date"); q != "" {
+		d, err := time.Parse(dateLayout, q)
+		if err != nil {
+			http.Error(w, "invalid date", http.StatusBadRequest)
+			return
+		}
+		date = d
+	}
+
+	list, err := s.store.ListTasks(r.Context(), date)
+	if err != nil {
+		serverError(w, "list tasks", err)
+		return
+	}
+
+	// store.Task -> tasks.Item: the two packages stay independent.
+	items := make([]tasks.Item, 0, len(list))
+	for _, t := range list {
+		items = append(items, tasks.Item{Progress: t.Progress, Weight: t.Difficulty})
+	}
+	pct, ok := tasks.Percent(items)
+
+	s.render(w, "tasks.html", tasksData{
+		Page:       Page{Active: "tasks"},
+		Date:       date.Format(dateLayout),
+		Tasks:      list,
+		Percent:    pct,
+		HasPercent: ok,
+	})
 }

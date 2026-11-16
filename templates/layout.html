@@ -13,6 +13,7 @@
     <nav>
       <a href="/"{{if eq .Active "dashboard"}} class="on" aria-current="page"{{end}}>Dashboard</a>
       <a href="/write"{{if eq .Active "write"}} class="on" aria-current="page"{{end}}>Write</a>
+      <a href="/tasks"{{if eq .Active "tasks"}} class="on" aria-current="page"{{end}}>Tasks</a> 
     </nav>
     <button type="button" id="theme-toggle" class="ghost" aria-label="Switch theme">Theme: <span id="theme-name">Ocean</span></button>
   </header>
