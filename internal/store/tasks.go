@@ -2,8 +2,11 @@ package store
 
 import (
 	"context"
+	"errors"
 	"time"
 )
+
+var ErrNotFound = errors.New("not found")
 
 type Task struct {
 	ID         int64
@@ -54,11 +57,16 @@ func (s *Store) AddTask(ctx context.Context, t Task, skillIDs []int64) (int64, e
 
 // ListTasks returns the tasks of one day, oldest first.
 func (s *Store) ListTasks(ctx context.Context, date time.Time) ([]Task, error) {
+	return s.ListTasksBetween(ctx, date, date)
+}
+
+// ListTasksBetween returns the tasks between two days, both included.
+func (s *Store) ListTasksBetween(ctx context.Context, from, to time.Time) ([]Task, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, task_date, title, progress, difficulty, other_skill, note
 		FROM tasks
-		WHERE task_date = $1
-		ORDER BY id`, date)
+		WHERE task_date BETWEEN $1 AND $2
+		ORDER BY task_date, id`, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -77,22 +85,42 @@ func (s *Store) ListTasks(ctx context.Context, date time.Time) ([]Task, error) {
 	return tasks, rows.Err()
 }
 
-// ListSkills returns every skill, grouped by kind.
-func (s *Store) ListSkills(ctx context.Context) ([]Skill, error) {
-	rows, err := s.pool.Query(ctx,
-		`SELECT id, name, kind FROM skills ORDER BY kind, name`)
+// SetProgress changes the progress (0-100) of one task.
+func (s *Store) SetProgress(ctx context.Context, id int64, progress int) error {
+	tag, err := s.pool.Exec(ctx,
+		`UPDATE tasks SET progress = $2, updated_at = now() WHERE id = $1`,
+		id, progress)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer rows.Close()
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
 
-	var skills []Skill
-	for rows.Next() {
-		var sk Skill
-		if err := rows.Scan(&sk.ID, &sk.Name, &sk.Kind); err != nil {
-			return nil, err
-		}
-		skills = append(skills, sk)
+// MoveTask moves a task to another day.
+func (s *Store) MoveTask(ctx context.Context, id int64, date time.Time) error {
+	tag, err := s.pool.Exec(ctx,
+		`UPDATE tasks SET task_date = $2, updated_at = now() WHERE id = $1`,
+		id, date)
+	if err != nil {
+		return err
 	}
-	return skills, rows.Err()
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// DeleteTask deletes a task. Its skill links are removed by ON DELETE CASCADE.
+func (s *Store) DeleteTask(ctx context.Context, id int64) error {
+	tag, err := s.pool.Exec(ctx, `DELETE FROM tasks WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
